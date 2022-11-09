@@ -1,125 +1,77 @@
-//tworzenie kalkulatora
-const create_calculator = () => {
-    let root = document.querySelector('#root');
-    let screen = document.createElement('div');
-    screen.classList.add('screen')
-    let numbers = document.createElement('div');
-    numbers.classList.add('numbers');
-    let operations = document.createElement('div');
-    operations.classList.add('operations');
-    let operation_table = ['+', '-', '*', '/', '=', 'c']
-    //tworzenie elementów cyfr
-    for (let i = 9; i >= 0; i--){
-        let number = document.createElement('div');
-        number.classList.add('number');
-        number.innerText = i;
-        numbers.appendChild(number);
-    }
-    //tworzenie elementów operacji
-    operation_table.forEach((x) => {
-        let operation = document.createElement('div')
-        operation.classList.add('operation');
-        operation.innerText = x;
-        operations.appendChild(operation);
-    })
-    //dodawanie elementów
-    root.appendChild(screen)
-    root.appendChild(numbers);
-    root.appendChild(operations)
-}
-
 //obliczanie działań
-const result_func = (table) => {
+const result = (table) => {
     let result = parseInt(table[0])
-    for (let i=1; i<table.length; i++) {
-        if (table[i] == '+'){
-            result += parseInt(table[i+1])
+    for (let i = 2; i < table.length; i++){
+        if (table[i-1] == '+'){
+            result += parseInt(table[i])
         }
-        else if (table[i] == '-'){
-            result -= parseInt(table[i+1])
+        if (table[i-1] == '-'){
+            result -= parseInt(table[i])
         }
-        else if (table[i] == '*'){
-            result *= parseInt(table[i+1])
+        if (table[i-1] == '*'){
+            result *= parseInt(table[i])
         }
-        else if (table[i] == '/'){
-            result /= parseInt(table[i+1]);
-        }  
+        if (table[i-1] == '/'){
+            result /= parseInt(table[i])
+        }
+        if (table[i-1] == '%'){
+            result %= parseInt(table[i])
+        }
     }
     return result;
 }
-
-//operacje na kalkulatorze
-const operation_func = () => {
-    let numbers = document.querySelector('.numbers');
-    let table = [];
-    let screen = document.querySelector('.screen');
-    let screen_text = '';
-
-    numbers.addEventListener('click', e => {
-        //dodawanie liczb do tablicy
-        const target = e.target;
-        if (table[table.length -1] == '+' || table[table.length -1] == '-' || table[table.length -1] == '*' || table[table.length -1] ==  '/' || table.length == 0){
-            table.push(target.innerText);
-        }
-        else{
-            let n = table[table.length - 1];
-            table.pop();
-            table.push(n+target.innerText);
-        }
-        //wypisywanie danych na ekran
-        screen.innerText = '';
-        screen_text = ''; 
-        table.forEach((element) => {
-            screen_text += element;
+//wyświetlanie danych na ekran
+const show_date = (date) => {
+    let screen = document.querySelector('#screen');
+    screen.innerText = ''
+    let text_screen = ''
+    if (typeof(date) == 'number'){
+        screen.innerText = date.toString()
+    }
+    else{
+        date.forEach((x) => {
+            text_screen += x.toString()
         })
-        screen.innerText = screen_text;
-
-    })
-
-    document.addEventListener('keydown', e => {
-        if (e.code.slice(0, -1) == 'Digit') {
-            if (table[table.length -1] == '+' || table[table.length -1] == '-' || table[table.length -1] == '*' || table[table.length -1] ==  '/' || table.length == 0){
-                table.push(e.key);
-            }
-            else {
-                let n = table[table.length - 1];
-                table.pop();
-                table.push(n+e.key);
-            }
-            console.log(table)
-        }
-        //wypisywanie danych na ekran
-        screen.innerText = '';
-        screen_text = ''; 
-        table.forEach((element) => {
-            screen_text += element;
-        })
-        screen.innerText = screen_text;
-    })
-
-    //sprawdzanie operacji
-    let operations = document.querySelector('.operations');
-
-    operations.addEventListener('click', e => {
-        const target = e.target;
-        if (target.innerText != '=' && table.length > 0){
-            table.push(target.innerText);
-            //wypisywanie danych na ekran
-            screen.innerText = '';
-            screen_text = ''; 
-            table.forEach((element) => {
-                screen_text += element;
-            })
-            screen.innerText = screen_text;    
-        }
-        else{
-            if (result_func(table).toString() != 'NaN'){
-                screen.innerText = result_func(table).toString();
-            }
-            table = [];
-        }
-    })
-
+        screen.innerText = text_screen
+    }
 }
-create_calculator()
-operation_func()
+const load_date = () => {
+    let container = document.querySelector('#container');
+    let table = []
+    container.addEventListener('click', e => {
+        const target = e.target
+        //dodawanie znaku działania błąd: znak dodaje sie na pierwszym miejscu
+        if (target.innerText == '+' || target.innerText == '-' || target.innerText == '*' || target.innerText == '/' || target.innerText == '%' || table.length == 0 && target.innerText != 'c' && target.innerText != '=') {
+            if (table[table.length -1] != '+' && table[table.length -1] != '-' && table[table.length -1] != '*' && table[table.length -1] != '/' && table[table.length -1] != '%'){
+                console.log(target.innerText)
+                table.push(target.innerText)
+                show_date(table)
+            }
+        }
+        //obliczanie działania
+        else if (target.innerText == '=' && table.length > 2){
+            show_date(result(table))
+            table = []
+        }
+        //usuwanie danych z listy
+        else if (target.innerText == 'c'){
+            table = []
+            show_date(table)
+        }
+        //dodawanie liczb do listy
+        else if (typeof(parseInt(target.innerText)) == 'number' && table[table.length-1] != '+' && table[table.length-1] != '-' && table[table.length-1] != '*' && table[table.length-1] != '/' && table[table.length-1] != '%' && target.innerText != 'c' && target.innerText != '='){
+            let n = table[table.length - 1]
+            table.pop()
+            table.push(n+target.innerText)
+            show_date(table)
+        }
+        //dodawanie liczby do tablicy
+        else if (typeof(parseInt(target.innerText)) == 'number'){
+            console.log(target.innerText)
+            table.push(target.innerText)
+            show_date(table)
+        }
+    })
+}
+load_date()
+
